@@ -6,6 +6,8 @@
 package edu.eci.arsw.blacklistvalidator;
 
 import edu.eci.arsw.spamkeywordsdatasource.HostBlacklistsDataSourceFacade;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -44,22 +46,34 @@ public class HostBlackListsValidator {
 
         int sup_limit = skds.getRegisteredServersCount();
 
+        ArrayList<Thread> threadsList = new ArrayList<>();
+
         for (int i = 0; i < n; i++) {
             ThreadHostBlackListValidator thread = new ThreadHostBlackListValidator(ipaddress,
                     inf_limit + (i * (sup_limit - inf_limit) / n), inf_limit + ((i + 1) * (sup_limit - inf_limit) / n));
 
-            thread.start();
+            threadsList.add(thread);
         }
 
-        for (int i = 0; i < skds.getRegisteredServersCount() && ocurrencesCount < BLACK_LIST_ALARM_COUNT; i++) {
-            checkedListsCount++;
+        for (Thread j : threadsList) {
+            j.start();
+        }
 
-            if (skds.isInBlackListServer(i, ipaddress)) {
-
-                blackListOcurrences.add(i);
-
-                ocurrencesCount++;
+        for (Thread k : threadsList) {
+            try {
+                k.join();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
             }
+        }
+
+        for (Thread l : threadsList) {
+            ThreadHostBlackListValidator threadAux = (ThreadHostBlackListValidator) l;
+            for (Integer m : threadAux.getThreadBlackList()) {
+                blackListOcurrences.add(m);
+            }
+            ocurrencesCount += threadAux.getOcurrences();
+            checkedListsCount += threadAux.getCheckedList();
         }
 
         if (ocurrencesCount >= BLACK_LIST_ALARM_COUNT) {
