@@ -1,20 +1,18 @@
 package edu.eci.arsw.blacklistvalidator;
 
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import edu.eci.arsw.spamkeywordsdatasource.HostBlacklistsDataSourceFacade;
 
 public class ThreadHostBlackListValidator extends Thread {
 
     private static final int BLACK_LIST_ALARM_COUNT = 5;
-    private static final Logger LOG = Logger.getLogger(HostBlackListsValidator.class.getName());
     private String ip;
     private int inf_limit;
     private int sup_limit;
     private int ocurrences;
-    private LinkedList threadBlackList;
+    private int checkedListsCount;
+    private LinkedList<Integer> threadBlackList = new LinkedList<>();
 
     public ThreadHostBlackListValidator(String ip, int inf_limit, int sup_limit) {
         this.ip = ip;
@@ -23,35 +21,24 @@ public class ThreadHostBlackListValidator extends Thread {
     }
 
     public void run() {
-        LinkedList<Integer> blackListOcurrences = new LinkedList<>();
 
         int ocurrencesCount = 0;
 
         HostBlacklistsDataSourceFacade skds = HostBlacklistsDataSourceFacade.getInstance();
 
-        int checkedListsCount = 0;
+        checkedListsCount = 0;
 
         for (int i = inf_limit; i < sup_limit && ocurrencesCount < BLACK_LIST_ALARM_COUNT; i++) {
             checkedListsCount++;
 
             if (skds.isInBlackListServer(i, ip)) {
 
-                blackListOcurrences.add(i);
+                threadBlackList.add(i);
 
                 ocurrencesCount++;
             }
         }
 
-        if (ocurrencesCount >= BLACK_LIST_ALARM_COUNT) {
-            skds.reportAsNotTrustworthy(ip);
-        } else {
-            skds.reportAsTrustworthy(ip);
-        }
-
-        LOG.log(Level.INFO, "Checked Black Lists:{0} of {1}",
-                new Object[] { checkedListsCount, skds.getRegisteredServersCount() });
-
-        this.threadBlackList = blackListOcurrences;
         this.ocurrences = ocurrencesCount;
     }
 
@@ -59,8 +46,12 @@ public class ThreadHostBlackListValidator extends Thread {
         return this.ocurrences;
     }
 
-    public LinkedList getThreatBlackList() {
+    public LinkedList<Integer> getThreadBlackList() {
         return this.threadBlackList;
+    }
+
+    public int getCheckedList() {
+        return checkedListsCount;
     }
 
 }
