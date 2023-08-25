@@ -12,12 +12,16 @@ import java.util.List;
  * @author hcadavid
  */
 public class Main {
-    
+
+
+    private static Runtime runtime= Runtime.getRuntime();
     public static void main(String a[]){
+        int processors=runtime.availableProcessors();
+        //System.out.println("processors "+processors);
         HostBlackListsValidator hblv=new HostBlackListsValidator();
-        List<Integer> blackListOcurrences=hblv.checkHost("212.24.24.55", 10);
+        List<Integer> blackListOcurrences=hblv.checkHost("202.24.34.55",  100);
         System.out.println("The host was found in the following blacklists:"+blackListOcurrences);
-        
+
     }
     
 }
