@@ -24,12 +24,16 @@ public class HostBlackListsValidator {
     /**
      * Check the given host's IP address in all the available black lists,
      * and report it as NOT Trustworthy when such IP was reported in at least
-     * BLACK_LIST_ALARM_COUNT lists, or as Trustworthy in any other case.
-     * The search is not exhaustive: When the number of occurrences is equal to
-     * BLACK_LIST_ALARM_COUNT, the search is finished, the host reported as
-     * NOT Trustworthy, and the list of the five blacklists returned.
+     * BLACK_LIST_ALARM_COUNT lists, or as Trustworthy in any other case. The search
+     * is divided by the number of threads, each of them search in a range of the
+     * servers. When all the threads complete his part, the next step is validate if
+     * the given host's IP address is turstworthy or not. The search is not
+     * exhaustive: When the number of occurrences is equal to
+     * BLACK_LIST_ALARM_COUNT, the search is finished, the host reported as NOT
+     * Trustworthy, and the list of the five blacklists returned.
      * 
      * @param ipaddress suspicious host's IP address.
+     * @param n         number of threads
      * @return Blacklists numbers where the given host's IP address was found.
      */
     public List<Integer> checkHost(String ipaddress, int n) {
